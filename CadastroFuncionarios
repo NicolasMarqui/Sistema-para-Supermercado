@@ -1,0 +1,88 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+using System.IO;
+using System.Drawing.Imaging;
+
+namespace SistemaComSQLServer
+{
+    public partial class CadFuncionario : Form
+    {
+        public CadFuncionario()
+        {
+            InitializeComponent();
+        }
+
+        private void btnCadastarFuncionario_Click(object sender, EventArgs e)
+        {
+            SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
+            
+            string addFuncionario = "INSERT INTO [Login](username,password,nivel,img) VALUES (@username,@password,@nivel,@img)";
+
+            SqlCommand cmd = new SqlCommand(addFuncionario,sqlcon);
+
+            cmd.Parameters.AddWithValue("@username", UserCadastro.Text);
+            cmd.Parameters.AddWithValue("@password", SenhaCadastro.Text);
+            cmd.Parameters.AddWithValue("@nivel", NivelCadastro.Text);
+            SqlParameter imagem = new SqlParameter("@img", SqlDbType.Binary);
+
+            imagem.Value = foto;
+
+            cmd.Parameters.Add(imagem);
+
+            try
+            {
+                sqlcon.Open();
+                cmd.ExecuteNonQuery();
+                MessageBox.Show("Funcionário Cadastrado com sucesso");
+                UserCadastro.Clear();
+                SenhaCadastro.Clear();
+                NivelCadastro.Clear();
+                pictureBox1.Image = null;
+
+
+            }
+            catch(Exception E)
+            {
+                MessageBox.Show(E.Message);
+            }
+            finally
+            {
+                sqlcon.Close();
+            }
+        }
+
+        Bitmap bmp;
+        byte[] foto;
+
+        private void btnBuscarImagem_Click(object sender, EventArgs e)
+        {
+            if(openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                string caminho = openFileDialog1.FileName;
+
+                bmp = new Bitmap(caminho);
+
+                pictureBox1.Image = bmp;
+            }
+
+            MemoryStream memory = new MemoryStream();
+
+            bmp.Save(memory, ImageFormat.Bmp);
+
+            foto = memory.ToArray();
+        }
+
+        private void fecharCad_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+        }
+    }
+}
