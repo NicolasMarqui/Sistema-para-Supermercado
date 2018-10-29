@@ -89,5 +89,37 @@ namespace SistemaComSQLServer
         {
             TimerSlide.Interval = 80;
         }
+
+        private void MostrarSenha_CheckedChanged(object sender, EventArgs e)
+        {
+            if (MostrarSenha.Checked)
+            {
+                SenhaLogin.PasswordChar = '\0';
+            }
+            else
+            {
+                SenhaLogin.PasswordChar = '*';
+            }
+        }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            labelMensagem.Visible = true;
+            labelMensagem.Text = "Entre em contato com o admin\nou o dono do mercado";
+            labelMensagem.BackColor = Color.Red;
+            labelMensagem.ForeColor = Color.Black;
+        }
+
+        private void labelMensagem_Click(object sender, EventArgs e)
+        {
+            labelMensagem.Visible = false;
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+            Menu men = new Menu();
+            this.Hide();
+            men.Show();
+        }
     }
 }
