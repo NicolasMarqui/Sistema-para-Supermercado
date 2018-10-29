@@ -8,45 +8,50 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Data.SqlClient;
-using System.IO;
-using System.Drawing.Imaging;
 
 namespace SistemaComSQLServer
 {
-    public partial class CadFuncionario : Form
+    public partial class CadProdutos : Form
     {
-        public CadFuncionario()
+        public CadProdutos()
         {
             InitializeComponent();
+            mostrar();
+            //this.StartPosition = FormStartPosition.Manual;
+            //this.Location = new Point(400,180);
         }
 
-        private void btnCadastarFuncionario_Click(object sender, EventArgs e)
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+        }
+
+        private void btnCadProd_Click(object sender, EventArgs e)
         {
             SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
-            
-            string addFuncionario = "INSERT INTO [Login](username,password,nivel,img) VALUES (@username,@password,@nivel,@img)";
 
-            SqlCommand cmd = new SqlCommand(addFuncionario,sqlcon);
+            string SalvarProduto = "INSERT INTO [cadastroProdutos](codigoBarra,nomeProduto,grupo,subGrupo,embalagem,quantidade,fabricante,CNPJ,precoCompra,precoVenda) VALUES (@codigoBarra,@nomeProduto,@grupo,@subGrupo,@embalagem,@quantidade,@fabricante,@CNPJ,@precoCompra,@precoVenda)";
 
-            cmd.Parameters.AddWithValue("@username", UserCadastro.Text);
-            cmd.Parameters.AddWithValue("@password", SenhaCadastro.Text);
-            cmd.Parameters.AddWithValue("@nivel", NivelCadastro.Text);
-            SqlParameter imagem = new SqlParameter("@img", SqlDbType.Binary);
+            SqlCommand cmd = new SqlCommand(SalvarProduto, sqlcon);
 
-            imagem.Value = foto;
-
-            cmd.Parameters.Add(imagem);
+            cmd.Parameters.AddWithValue("@codigoBarra", CodigoBarraCad.Text);
+            cmd.Parameters.AddWithValue("@nomeProduto", nomeCad.Text);
+            cmd.Parameters.AddWithValue("@grupo", GrupoCad.SelectedItem);
+            cmd.Parameters.AddWithValue("@subGrupo", SubGrupoCad.SelectedItem);
+            cmd.Parameters.AddWithValue("@embalagem", EmbalagemCad.Text);
+            cmd.Parameters.AddWithValue("@quantidade", QuantidadeCad.Value);
+            cmd.Parameters.AddWithValue("@fabricante", FabricanteCad.Text);
+            cmd.Parameters.AddWithValue("@CNPJ", CNPJCad.Text);
+            cmd.Parameters.AddWithValue("@precoCompra", PrecoCompraCad.Text);
+            cmd.Parameters.AddWithValue("@precoVenda", PrecoVendaCad.Text);
 
             try
             {
                 sqlcon.Open();
                 cmd.ExecuteNonQuery();
-                MessageBox.Show("Funcionário Cadastrado com sucesso");
-                UserCadastro.Clear();
-                SenhaCadastro.Clear();
-                NivelCadastro.Clear();
-                pictureBox1.Image = null;
-
+                MessageBox.Show("Produto Cadastrado com Sucesso");
+                labelAviso.Visible = true;
+                //CodigoBarraCad.Clear();
 
             }
             catch(Exception E)
@@ -59,30 +64,70 @@ namespace SistemaComSQLServer
             }
         }
 
-        Bitmap bmp;
-        byte[] foto;
-
-        private void btnBuscarImagem_Click(object sender, EventArgs e)
+        private void GrupoCad_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if(openFileDialog1.ShowDialog() == DialogResult.OK)
+            SubGrupoCad.Items.Clear();
+
+            if (GrupoCad.SelectedItem.ToString() == "LIMPEZA")
             {
-                string caminho = openFileDialog1.FileName;
-
-                bmp = new Bitmap(caminho);
-
-                pictureBox1.Image = bmp;
+                SubGrupoCad.SelectedItem = "";
+                SubGrupoCad.Items.Add("DESINFETANTE");
+                SubGrupoCad.Items.Add("DESINFETANTE");
+                SubGrupoCad.Items.Add("DESINFETANTE");
+                SubGrupoCad.Items.Add("DESINFETANTE");
+            }else if(GrupoCad.SelectedItem.ToString() == "COMIDA")
+            {
+                SubGrupoCad.SelectedItem = "";
+                SubGrupoCad.Items.Add("BOLACHA");
+                SubGrupoCad.Items.Add("BOLACHA");
+                SubGrupoCad.Items.Add("BOLACHA");
+                SubGrupoCad.Items.Add("BOLACHA");
             }
-
-            MemoryStream memory = new MemoryStream();
-
-            bmp.Save(memory, ImageFormat.Bmp);
-
-            foto = memory.ToArray();
         }
 
-        private void fecharCad_Click(object sender, EventArgs e)
+        private void CadProdutos_Load(object sender, EventArgs e)
         {
-            this.Hide();
+            GrupoCad.Items.Add("LIMPEZA");
+            GrupoCad.Items.Add("COMIDA");
+            GrupoCad.Items.Add("CONGELADOS");
+            GrupoCad.Items.Add("MACONHA");
+            mostrar();
+            dataGridView1.Refresh();
+
+        }
+      
+        private void groupBox1_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        void mostrar()
+        {
+            SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
+
+            string mostrar = "SELECT * FROM [cadastroProdutos]";
+
+            SqlDataAdapter dta = new SqlDataAdapter(mostrar, sqlcon);
+
+            DataTable table = new DataTable();
+
+            dta.Fill(table);
+
+            dataGridView1.DataSource = table;
+
+            try
+            {
+                sqlcon.Open();
+            }
+            catch(Exception E)
+            {
+                MessageBox.Show(E.Message);
+            }
+            finally
+            {
+                sqlcon.Close();
+            }
         }
     }
 }
+
