@@ -24,7 +24,10 @@ namespace SistemaComSQLServer
         }
 
         private void Menu_Load(object sender, EventArgs e)
-        { 
+        {
+            this.KeyPreview = true;
+            this.KeyDown += new KeyEventHandler(Menu_KeyDown);
+
             System.Drawing.Drawing2D.GraphicsPath gp = new System.Drawing.Drawing2D.GraphicsPath();
             gp.AddEllipse(0, 0, pictureBox1.Width - 3, pictureBox1.Height - 3);
             Region rg = new Region(gp);
@@ -71,7 +74,7 @@ namespace SistemaComSQLServer
             label1.Font = new Font("Arial", 62);
             label2.Font = new Font("Arial", 30);
             label1.Left = 670;
-            label2.Left = 760;
+            label2.Left = 745;
         }
 
         private void btnCadastrar_Click(object sender, EventArgs e)
@@ -153,6 +156,58 @@ namespace SistemaComSQLServer
         {
             Caixa caixa = new Caixa();
             caixa.ShowDialog();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            CadastrarFornecedores forn = new CadastrarFornecedores();
+            forn.ShowDialog();
+        }
+
+        private void adicionarProdutosToolStripMenuItem_Click(object sender, EventArgs e)
+        { 
+            CadProdutos cad = new CadProdutos();
+            cad.ShowDialog();
+        }
+
+        private void Menu_KeyDown(object sender, KeyEventArgs e)
+        {
+        }
+
+        private void pedirProdutosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            PedidoFornecedor ped = new PedidoFornecedor();
+            ped.ShowDialog();
+        }
+
+        private void alterarProdutosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AlterarProd alt = new AlterarProd();
+            alt.ShowDialog();
+        }
+
+        private void adicionarProdutoNoEstoqueToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Estoque est = new Estoque();
+            est.ShowDialog();
+        }
+
+        private void caixaToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            Caixa caixa = new Caixa();
+            caixa.ShowDialog();
+        }
+
+        private void adicionarFuncionáriosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CadFuncionario func = new CadFuncionario();
+            func.ShowDialog();
+        }
+
+        private void cadastrarFornecedoresToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CadastrarFornecedores forn = new CadastrarFornecedores();
+            forn.ShowDialog();
         }
     }
 }
