@@ -15,6 +15,8 @@ namespace SistemaComSQLServer
     {
         public static decimal valorTelaPagamento = 0;
         decimal soma;
+        bool compraFechada = false;
+        
 
         public Caixa()
         {
@@ -26,7 +28,7 @@ namespace SistemaComSQLServer
         {
             SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
 
-            string pesquisar = "SELECT * FROM [cadastroProdutos] WHERE codigoBarra LIKE '%" + CodigoCaixa.Text + "%' ORDER BY nomeProduto";
+            string pesquisar = "SELECT * FROM [Estoque] WHERE codigoBarra LIKE '%" + CodigoCaixa.Text + "%' ORDER BY nomeProduto";
 
             SqlDataAdapter dta = new SqlDataAdapter(pesquisar, sqlcon);
 
@@ -57,6 +59,7 @@ namespace SistemaComSQLServer
 
         string quantidadeTabelaUm;
         string quantidadeTabelaUm2;
+        int valorAposQuantidade = 0;
 
         private void dataGridView1_DoubleClick(object sender, EventArgs e)
         {
@@ -72,17 +75,24 @@ namespace SistemaComSQLServer
                 foreach (DataGridViewRow row in dataGridView1.SelectedRows)
                 {
                     string quantidadeInput = InputDialogBox.Show("Quantidade");
-                    quantidadeTabelaUm = row.Cells[3].Value.ToString();
-                    label3.Text = Convert.ToInt32(quantidadeInput).ToString();
+                    quantidadeTabelaUm = row.Cells[2].Value.ToString();
 
-                    string nomeDataDois = row.Cells[2].Value.ToString();
-                    string precoDataDois = row.Cells[10].Value.ToString();
-                    row.Cells[3].Value = quantidadeInput.ToString();
-                    string quantidadeData2 = row.Cells[3].Value.ToString();
+                    string nomeDataDois = row.Cells[1].Value.ToString();
+                    string precoDataDois = row.Cells[5].Value.ToString();
+                    valorAposQuantidade = Convert.ToInt32(row.Cells[2].Value) - Convert.ToInt32(quantidadeInput);
 
-                    dataGridView2.Rows.Add(nomeDataDois, quantidadeData2, precoDataDois);
-                    labelTotalItem.Text = precoDataDois.ToString();
-                    labelQuantidade.Text = quantidadeInput.ToString();
+                    if (valorAposQuantidade < 0)
+                    {
+                        MessageBox.Show("Não há quantidades desse item no estoque");
+                    }
+                    else
+                    {
+                        row.Cells[2].Value = valorAposQuantidade.ToString();
+                        string quantidadeData2 = quantidadeInput.ToString();
+                        dataGridView2.Rows.Add(nomeDataDois, quantidadeData2, precoDataDois);
+                        labelTotalItem.Text = precoDataDois.ToString();
+                        labelQuantidade.Text = quantidadeInput.ToString();
+                    }
 
                 }
                 
@@ -100,6 +110,7 @@ namespace SistemaComSQLServer
             {
                 MessageBox.Show(E.Message);
             }
+            
         }
 
         private void dataGridView_SelectionChanged(object sender, EventArgs e)
@@ -115,32 +126,38 @@ namespace SistemaComSQLServer
 
         private void btnFinalizar_Click(object sender, EventArgs e)
         {
+            compraFechada = true;
             Pagamento pagar = new Pagamento();
             pagar.ShowDialog();
 
-            SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
-
-            string update = "UPDATE cadastroProdutos SET quantidade = @quantidade";
-
-            SqlCommand cmd = new SqlCommand(update, sqlcon);
-
-            cmd.Parameters.AddWithValue("@quantidade", (Convert.ToInt32(label3.Text) - 15));
-
-            try
+            foreach (DataGridViewRow row in dataGridView1.SelectedRows)
             {
-                sqlcon.Open();
-                cmd.ExecuteNonQuery();
-                //MessageBox.Show("Produto atualizado carai");
-            }
-            catch(Exception E)
-            {
-                MessageBox.Show(E.Message);
-            }
-            finally
-            {
-                sqlcon.Close();
-            }
 
+                SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
+
+                int j = dataGridView1.SelectedCells[0].RowIndex;
+
+                string select = "UPDATE Estoque set quantidade = @quant WHERE nomeProduto = '" + dataGridView1.Rows[j].Cells[1].Value + "'";
+
+                SqlCommand cmd = new SqlCommand(select, sqlcon);
+
+                cmd.Parameters.AddWithValue("@quant", dataGridView1.Rows[j].Cells[2].Value);
+
+                try
+                {
+                    sqlcon.Open();
+                    cmd.ExecuteNonQuery();
+                    MessageBox.Show("Baixa no estoque");
+                }
+                catch (Exception E)
+                {
+                    MessageBox.Show(E.Message);
+                }
+                finally
+                {
+                    sqlcon.Close();
+                }
+            }
         }
 
         private void btnRemover_Click(object sender, EventArgs e)
@@ -155,6 +172,10 @@ namespace SistemaComSQLServer
 
         decimal id,id2;
 
+        private void Caixa_Load(object sender, EventArgs e)
+        {
+        }
+
         private void dataGridView2_DoubleClick(object sender, EventArgs e)
         {
             foreach(DataGridViewRow row in dataGridView2.SelectedRows)
@@ -162,12 +183,20 @@ namespace SistemaComSQLServer
                 id = Convert.ToDecimal(row.Cells[2].Value);
                 id2 = Convert.ToDecimal(row.Cells[1].Value);
                 dataGridView2.Rows.RemoveAt(row.Index);
-
                 soma -= (Convert.ToDecimal(id)) * Convert.ToDecimal(id2);
             }
 
+            foreach(DataGridViewRow row in dataGridView1.SelectedRows)
+            {
+                int teste = Convert.ToInt32(row.Cells[2].Value) + Convert.ToInt32(id2);
+                row.Cells[2].Value = teste;
+            }
+
+            
             labelTotalCompra.Text = soma.ToString();
             valorTelaPagamento = Convert.ToDecimal(labelTotalCompra.Text);
+            labelTotalItem.Text = "0.00";
+            labelQuantidade.Text = "0";
         }
     }
 }
