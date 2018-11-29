@@ -11,69 +11,21 @@ using System.Windows.Forms;
 
 namespace SistemaComSQLServer
 {
-    public partial class AtualizarRapido : Form
+    public partial class EstoqueRapido : Form
     {
-        public AtualizarRapido()
+        public EstoqueRapido()
         {
             InitializeComponent();
-            labelNome.Text = AlterarProd.nomeProdutoAlterado;
             PreencherDataEstoque();
-        }
-
-        private void btnAtualizar_Click(object sender, EventArgs e)
-        {
-            string pegarQuantidadeDataParaAlterarEstoque;
-            int somaEstoque = 0;
-
-            SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
-
-            string update = "UPDATE Estoque SET quantidade = @quantidade WHERE nomeProduto = @nome";
-
-            string diferencaCadastro = "UPDATE cadastroProdutos SET quantidade = @quant WHERE nomeProduto = @nome2";
-
-            SqlCommand cmdProdutos = new SqlCommand(diferencaCadastro, sqlcon);
-
-            int quantidadeProdutAposBaixa = AlterarProd.quantidadeAlterada - Convert.ToInt32(quatidadeNumeric.Value);
-
-            cmdProdutos.Parameters.AddWithValue("@quant",quantidadeProdutAposBaixa);
-            cmdProdutos.Parameters.AddWithValue("@nome2", labelNome.Text);
-
-            SqlCommand cmd = new SqlCommand(update, sqlcon);
-
-            pegarQuantidadeDataParaAlterarEstoque = dataGridView1.Rows[0].Cells[1].Value.ToString();
-            somaEstoque = Convert.ToInt32(pegarQuantidadeDataParaAlterarEstoque) + Convert.ToInt32(quatidadeNumeric.Value);
-
-            cmd.Parameters.AddWithValue("@quantidade", somaEstoque);
-            cmd.Parameters.AddWithValue("@nome", labelNome.Text);
-
-            try
-            {
-                if(Convert.ToInt32(quatidadeNumeric.Value) > AlterarProd.quantidadeAlterada)
-                {
-                    MessageBox.Show("Não há quantidade suficiente desse produto");
-                }
-                else
-                {
-                    sqlcon.Open();
-                    cmd.ExecuteNonQuery();
-                    cmdProdutos.ExecuteNonQuery();
-                    MessageBox.Show("Quantidade alterada no estoque");
-                }
-            }catch(Exception E)
-            {
-                MessageBox.Show(E.Message);
-            }
-            finally
-            {
-                sqlcon.Close();
-            }
+            pesquisar();
+            mostrarFundoVermelho();
         }
 
         void PreencherDataEstoque()
         {
             SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
 
-            string selectAll = "SELECT quantidade FROM [Estoque] WHERE nomeProduto = '" + labelNome.Text + "'";
+            string selectAll = "SELECT * FROM [Estoque]";
 
             SqlDataAdapter dta = new SqlDataAdapter(selectAll, sqlcon);
 
@@ -96,11 +48,115 @@ namespace SistemaComSQLServer
             }
         }
 
-        private void btnVoltar_Click(object sender, EventArgs e)
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            AlterarProd alt = new AlterarProd();
-            this.Close();
-            alt.ShowDialog();
+            mostrarNome.Text = dataGridView1.Rows[e.RowIndex].Cells[2].Value.ToString();
+            labelPegarQuant.Text = dataGridView1.Rows[e.RowIndex].Cells[3].Value.ToString();
+        }
+
+        public void pesquisar()
+        {
+            SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
+
+            string pesquisar = "SELECT * FROM [Estoque] WHERE nomeProduto LIKE '%" + textBox1.Text + "%' ORDER BY nomeProduto";
+
+            SqlDataAdapter dta = new SqlDataAdapter(pesquisar, sqlcon);
+
+            DataTable table = new DataTable();
+
+            dta.Fill(table);
+
+            dataGridView1.DataSource = table;
+
+            try
+            {
+                sqlcon.Open();
+                mostrarFundoVermelho();
+            }
+            catch (Exception E)
+            {
+                MessageBox.Show(E.Message);
+            }
+            finally
+            {
+                sqlcon.Close();
+            }
+        }
+
+        private void btnRapido_Click(object sender, EventArgs e)
+        {
+            SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
+
+            string updateQuantidadeEstoque = "UPDATE Estoque SET quantidade = @quant WHERE nomeProduto = @nome";
+
+            SqlCommand cmd = new SqlCommand(updateQuantidadeEstoque, sqlcon);
+
+            int novaQuantidadeSomada = Convert.ToInt32(labelPegarQuant.Text) + Convert.ToInt32(numericUpDown1.Value);
+
+            cmd.Parameters.AddWithValue("@quant", novaQuantidadeSomada);
+            cmd.Parameters.AddWithValue("@nome", mostrarNome.Text);
+
+            try
+            {
+                sqlcon.Open();
+                cmd.ExecuteNonQuery();
+                MessageBox.Show("+ " + numericUpDown1.Value + " unidades do produto " + mostrarNome.Text + " foram adicionadas ao estoque", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception E)
+            {
+                MessageBox.Show(E.Message);
+            }
+            finally
+            {
+                sqlcon.Close();
+            }
+        }
+
+        private void EstoqueRapido_Load(object sender, EventArgs e)
+        {
+            pesquisar();
+            mostrarFundoVermelho();
+        }
+
+        private void textBox1_KeyUp(object sender, KeyEventArgs e)
+        {
+            pesquisar();
+        }
+
+        void limparCampos()
+        {
+            textBox1.Clear();
+            mostrarNome.Text = "-";
+            numericUpDown1.Value = 0;
+        }
+
+        void mostrarFundoVermelho()
+        {
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                if (Convert.ToInt32(row.Cells[3].Value) <= 5)
+                {
+                    row.DefaultCellStyle.BackColor = Color.Yellow;
+                    row.DefaultCellStyle.ForeColor = Color.Black;
+                }
+
+                if (Convert.ToInt32(row.Cells[3].Value) > 5)
+                {
+                    row.DefaultCellStyle.BackColor = Color.Green;
+                    row.DefaultCellStyle.ForeColor = Color.White;
+                }
+
+                if (Convert.ToInt32(row.Cells[3].Value) == 0)
+                {
+                    row.DefaultCellStyle.BackColor = Color.Red;
+                    row.DefaultCellStyle.ForeColor = Color.White;
+                }
+            }
+        }
+
+        private void dataGridView1_Sorted(object sender, EventArgs e)
+        {
+            mostrarFundoVermelho();
         }
     }
 }
