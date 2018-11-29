@@ -21,38 +21,56 @@ namespace SistemaComSQLServer
 
         private void button1_Click(object sender, EventArgs e)
         {
+            //checkIfExists();
             SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
 
             string cadastrar = "INSERT INTO Fornecedores(nomeFornecedor, telefone, CNPJ, email, endereco) VALUES (@nomeFornecedor,@telefone,@CNPJ,@email,@endereco)";
 
             SqlCommand cmd = new SqlCommand(cadastrar, sqlcon);
 
-            cmd.Parameters.AddWithValue("@nomeFornecedor", nomeFornce.Text);
-            cmd.Parameters.AddWithValue("@telefone", teleForne.Text);
-            cmd.Parameters.AddWithValue("@CNPJ", CNPJFornce.Text);
-            cmd.Parameters.AddWithValue("@email", emailForne.Text);
-            cmd.Parameters.AddWithValue("@endereco", endeForne.Text);
+            string select = "SELECT * FROM Fornecedores WHERE nomeFornecedor = '" + nomeFornce.Text + "'";
 
-            try
-            {
-                sqlcon.Open();
-                cmd.ExecuteNonQuery();
-                MessageBox.Show("Forncedor cadastrado com sucesso");
-            }
-            catch(Exception E)
-            {
-                MessageBox.Show(E.Message);
-            }
-            finally
-            {
-                sqlcon.Close();
-            }
+            SqlDataAdapter dta = new SqlDataAdapter(select, sqlcon);
 
+            DataTable table = new DataTable();
+
+            dta.Fill(table);
+
+            if (table.Rows.Count > 0)
+            {
+                MessageBox.Show("Ops, esse fornecedor já está cadastrado");
+            }
+            else
+            {
+
+                cmd.Parameters.AddWithValue("@nomeFornecedor", nomeFornce.Text);
+                cmd.Parameters.AddWithValue("@telefone", teleForne.Text);
+                cmd.Parameters.AddWithValue("@CNPJ", CNPJFornce.Text);
+                cmd.Parameters.AddWithValue("@email", emailForne.Text);
+                cmd.Parameters.AddWithValue("@endereco", endeForne.Text);
+
+                try
+                {
+                    sqlcon.Open();
+                    cmd.ExecuteNonQuery();
+                    MessageBox.Show("Forncedor cadastrado com sucesso");
+                    limparCampos();
+                }
+                catch (Exception E)
+                {
+                    MessageBox.Show(E.Message);
+                }
+                finally
+                {
+                    sqlcon.Close();
+                }
+            }
 
         }
 
         private void CadastrarFornecedores_Load(object sender, EventArgs e)
         {
+            dataGridView1.Refresh();
             SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
 
             string mostrarForn = "SELECT * FROM Fornecedores";
@@ -85,6 +103,33 @@ namespace SistemaComSQLServer
         {
             PedidoFornecedor ped = new PedidoFornecedor();
             ped.ShowDialog();
+        }
+
+        void limparCampos()
+        {
+            nomeFornce.Clear();
+            teleForne.Clear();
+            CNPJFornce.Clear();
+            emailForne.Clear();
+            endeForne.Clear();
+        }
+
+        void checkIfExists()
+        {
+            SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
+
+            string select = "SELECT * FROM Fornecedores";
+
+            SqlDataAdapter dta = new SqlDataAdapter(select, sqlcon);
+
+            DataTable table = new DataTable();
+
+            dta.Fill(table);
+
+            if(table.Rows.Count > 0)
+            {
+                MessageBox.Show("Ops, esse fornecedor já está cadastrado");
+            }
         }
     }
 }
