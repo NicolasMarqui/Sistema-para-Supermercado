@@ -19,6 +19,9 @@ namespace SistemaComSQLServer
             PreencherDataEstoque();
             pesquisar();
             comboForne();
+            dataGridView1.Refresh();
+            dataGridView2.Refresh();
+            mostraCorFundo();
         }
 
         public void pesquisar()
@@ -52,6 +55,9 @@ namespace SistemaComSQLServer
         private void EstoqueAdicionar_KeyUp(object sender, KeyEventArgs e)
         {
             pesquisar();
+            dataGridView1.Refresh();
+            dataGridView2.Refresh();
+            mostraCorFundo();
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
@@ -59,78 +65,48 @@ namespace SistemaComSQLServer
             SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
 
             string taNoBanco = "SELECT * FROM cadastroProdutos WHERE codigoBarra = '" + EstoqueAdicionar.Text + "'";
+            string selectEstoque = "SELECT * FROM Estoque WHERE codigoBarra = '" + EstoqueAdicionar.Text + "'";
 
-            SqlDataAdapter dta = new SqlDataAdapter(taNoBanco, sqlcon);
+            SqlDataAdapter dataAdapterEstoque = new SqlDataAdapter(selectEstoque, sqlcon);
 
-            DataTable table = new DataTable();
+            DataTable tableEstoque = new DataTable();
 
-            dta.Fill(table);
+            dataAdapterEstoque.Fill(tableEstoque);
 
-            try
+            if (tableEstoque.Rows.Count > 0)
             {
-                sqlcon.Open();
-                if(table.Rows.Count > 0)
-                {
-                    MessageBox.Show("Produto se encontra cadastrado no sistema, adicione novas informações");
-
-                    int index = dataGridView1.CurrentCell.RowIndex;
-                    codEstoque.Text = dataGridView1.Rows[index].Cells[1].Value.ToString();
-                    nomeText.Text = dataGridView1.Rows[index].Cells[2].Value.ToString();
-                    QuantidadeText.Text = dataGridView1.Rows[index].Cells[6].Value.ToString();
-                    precoText.Text = dataGridView1.Rows[index].Cells[10].Value.ToString();
-                    fornceEsoque.Text = dataGridView1.Rows[index].Cells[7].Value.ToString();
-                    groupMostrarEstoque.Visible = true;
-                    //codEstoque.Text = dataGridView1.Rows[index].Cells[]
-
-                }
-                else
-                {
-                    MessageBox.Show("Produto não cadastrado no sistema");
-                }
-            }
-            catch(Exception E)
-            {
-                MessageBox.Show(E.Message);
-            }
-            finally
-            {
-                sqlcon.Close();
-            }
-
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
-
-            string addEstoque = "INSERT INTO Estoque(codigoBarra, nomeProduto, quantidade, dataEntrada, horarioEntrada, precoVenda,  fornecedor, distribuidora, nomeConferente) VALUES (@cod,@nome, @quant,@date, @hor,@preco, @forn,@dist,@confe)";
-
-            SqlCommand cmd = new SqlCommand(addEstoque, sqlcon);
-
-            cmd.Parameters.AddWithValue("@cod", codEstoque.Text);
-
-            if (Convert.ToInt32(quantEstoque.Text) > Convert.ToInt32(QuantidadeText.Text))
-            {
-                MessageBox.Show("Quantidade do produto não disponivel no sistema");
+                MessageBox.Show("Produto já cadastrado no sistema.Utilize o campo Alterar estoque para alterar alguma informação", "Já Cadastrado", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
-                cmd.Parameters.AddWithValue("@quant", quantEstoque.Text);
-                cmd.Parameters.AddWithValue("@nome", nomeText.Text);
-                cmd.Parameters.AddWithValue("@date", dataEstoque.Value);
-                cmd.Parameters.AddWithValue("@hor", dataEstoque.Text);
-                cmd.Parameters.AddWithValue("@preco", precoText.Text);
-                cmd.Parameters.AddWithValue("@forn", fornceEsoque.Text);
-                cmd.Parameters.AddWithValue("@dist", distEstoque.Text);
-                cmd.Parameters.AddWithValue("@confe", confeEstque.Text);
+
+                SqlDataAdapter dta = new SqlDataAdapter(taNoBanco, sqlcon);
+
+                DataTable table = new DataTable();
+
+                dta.Fill(table);
 
                 try
                 {
                     sqlcon.Open();
-                    checarSeExiste();
-                    cmd.ExecuteNonQuery();
-                    baixaProduto();
-                    MessageBox.Show("Produto adicionado ao estoque");
+                    if (table.Rows.Count > 0)
+                    {
+                        MessageBox.Show("Insira as Informações abaixo para cadastrar o produto no estoque");
+
+                        int index = dataGridView1.CurrentCell.RowIndex;
+                        codEstoque.Text = dataGridView1.Rows[index].Cells[1].Value.ToString();
+                        nomeText.Text = dataGridView1.Rows[index].Cells[2].Value.ToString();
+                        //QuantidadeText.Text = dataGridView1.Rows[index].Cells[6].Value.ToString();
+                        precoText.Text = dataGridView1.Rows[index].Cells[9].Value.ToString();
+                        fornceEsoque.Text = dataGridView1.Rows[index].Cells[6].Value.ToString();
+                        groupMostrarEstoque.Visible = true;
+                        //codEstoque.Text = dataGridView1.Rows[index].Cells[]
+
+                    }
+                    else
+                    {
+                        MessageBox.Show("Produto não cadastrado no sistema");
+                    }
                 }
                 catch (Exception E)
                 {
@@ -142,7 +118,42 @@ namespace SistemaComSQLServer
                 }
             }
 
+        }
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
+
+            string addEstoque = "INSERT INTO Estoque(codigoBarra, nomeProduto, quantidade , dataEntrada, horarioEntrada, precoVenda, fornecedor, distribuidora, nomeConferente) VALUES (@cod,@nome,@quant, @date, @hor,@preco, @forn,@dist,@confe)";
+
+            SqlCommand cmd = new SqlCommand(addEstoque, sqlcon);
+
+            cmd.Parameters.AddWithValue("@cod", codEstoque.Text);
+            cmd.Parameters.AddWithValue("@nome", nomeText.Text);
+            cmd.Parameters.AddWithValue("@quant", quantEstoque.Text);
+            cmd.Parameters.AddWithValue("@date", dataEstoque.Value);
+            cmd.Parameters.AddWithValue("@hor", dataEstoque.Text);
+            cmd.Parameters.AddWithValue("@preco", precoText.Text);
+            cmd.Parameters.AddWithValue("@forn", fornceEsoque.Text);
+            cmd.Parameters.AddWithValue("@dist", distEstoque.Text);
+            cmd.Parameters.AddWithValue("@confe", confeEstque.Text);
+
+            try
+             {
+                 sqlcon.Open();
+                 checarSeExiste();
+                 cmd.ExecuteNonQuery();
+                 //baixaProduto();
+                 MessageBox.Show("Produto adicionado ao estoque");
+             }
+             catch (Exception E)
+             {
+                 MessageBox.Show(E.Message);
+             }
+             finally
+            {
+                 sqlcon.Close();
+             }
         }
 
         void comboForne()
@@ -237,7 +248,7 @@ namespace SistemaComSQLServer
             }
         }
 
-        void baixaProduto()
+        /*void baixaProduto()
         {
             SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
 
@@ -262,22 +273,49 @@ namespace SistemaComSQLServer
             {
                 sqlcon.Close();
             }
-        }
+        }*/
+
+
 
         private void Estoque_Load(object sender, EventArgs e)
         {
+            dataGridView1.Refresh();
+            dataGridView2.Refresh();
+            mostraCorFundo();
+        }
+
+        void mostraCorFundo()
+        {
             foreach (DataGridViewRow row in dataGridView2.Rows)
-                if (Convert.ToInt32(row.Cells[2].Value) < 5)
+            {
+                if (Convert.ToInt32(row.Cells[3].Value) <= 5)
                 {
-                    row.DefaultCellStyle.BackColor = Color.Red;
+                    row.DefaultCellStyle.BackColor = Color.Yellow;
+                    row.DefaultCellStyle.ForeColor = Color.Black;
                 }
 
-            foreach (DataGridViewRow row in dataGridView1.Rows)
-                if (Convert.ToInt32(row.Cells[6].Value) < 5)
+                if (Convert.ToInt32(row.Cells[3].Value) > 5)
+                {
+                    row.DefaultCellStyle.BackColor = Color.Green;
+                    row.DefaultCellStyle.ForeColor = Color.White;
+                }
+
+                if (Convert.ToInt32(row.Cells[3].Value) == 0)
                 {
                     row.DefaultCellStyle.BackColor = Color.Red;
                     row.DefaultCellStyle.ForeColor = Color.White;
                 }
+            }
+        }
+
+        private void dataGridView2_Sorted(object sender, EventArgs e)
+        {
+            mostraCorFundo();
+        }
+
+        private void dataGridView1_Sorted(object sender, EventArgs e)
+        {
+            //mostraCorFundo();
         }
     }
 }
