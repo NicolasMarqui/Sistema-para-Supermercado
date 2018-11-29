@@ -23,6 +23,7 @@ namespace SistemaComSQLServer
         public PedidoFornecedor()
         {
             InitializeComponent();
+            dataGridView1.Refresh();
         }
 
         private void PedidoFornecedor_Load(object sender, EventArgs e)
@@ -30,7 +31,8 @@ namespace SistemaComSQLServer
             preencherData();
             preencherProduto();
             preencherData2();
-            label6.Text = dataGridView2.Rows[6].Cells[6].Value.ToString();
+            //label6.Text = dataGridView2.Rows[6].Cells[6].Value.ToString();
+            dataGridView1.Refresh();
         }
 
         void preencherData()
@@ -106,7 +108,7 @@ namespace SistemaComSQLServer
 
         private void button1_Click(object sender, EventArgs e)
         {
-            SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
+            /*SqlConnection sqlcon = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=Funcionarios;Data Source=DESKTOP-SDG9LN1");
 
             string update = "UPDATE CadastroProdutos SET quantidade = @quant WHERE nomeProduto = '" + comboBox1.Text + "'";
 
@@ -135,7 +137,7 @@ namespace SistemaComSQLServer
                 cmd.ExecuteNonQuery();
                 MessageBox.Show(numericUpDown1.Value.ToString());
                 MessageBox.Show(somar.ToString());
-                MessageBox.Show("Email para " + emailFornece.Text + " enviado com Sucesso");
+                
             }
             catch (Exception E)
             {
@@ -144,7 +146,10 @@ namespace SistemaComSQLServer
             finally
             {
                 sqlcon.Close();
-            }
+            }*/
+
+            MessageBox.Show("Email para " + emailFornece.Text + " enviado com Sucesso");
+            limparDados();
         }
 
         void preencherData2()
@@ -172,6 +177,16 @@ namespace SistemaComSQLServer
             {
                 sqlcon.Close();
             }
+        }
+
+        void limparDados()
+        {
+            nomeFornece.Clear();
+            telefoneForne.Clear();
+            emailFornece.Clear();
+            comboBox1.Text = "";
+            numericUpDown1.Value = 0;
+            msgBox.Clear();
         }
     }
 }
