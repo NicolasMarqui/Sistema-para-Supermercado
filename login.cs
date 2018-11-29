@@ -70,7 +70,7 @@ namespace SistemaComSQLServer
 
         private void loadNextImage()
         {
-            TimerSlide.Interval = 3000;
+            TimerSlide.Interval = 2500;
             if (imageNumber == 7)
             {
                 imageNumber = 1;
